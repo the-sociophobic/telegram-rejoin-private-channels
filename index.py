@@ -17,9 +17,9 @@ async def main():
 
   try:
     async with client.takeout() as takeout:
-      # Max number of returned channels. Sometimes Telegram returns [] if limit exceedes 100
-      limit = 100
-      channels = await takeout(GetLeftChannelsRequest(limit))
+      # Number of channels to skip
+      offset = 0
+      channels = await takeout(GetLeftChannelsRequest(offset))
       f = open('channels.txt', 'a')
       f.write(channels.stringify())
       f.close()
@@ -32,7 +32,11 @@ async def main():
         selected_channels =  [x for x in channels.chats if x.id in ids]
         I = await client.get_entity('me')
         for channel in selected_channels:
-          await client(InviteToChannelRequest(channel, [I]))
+          try:
+            await client(InviteToChannelRequest(channel, [I]))
+            print('Rejoined ' + channel.title)
+          except:
+            print('You are not allowed to rejoin ' + channel.title + '. skipped')
         print('Check your Telegram App for the lost channels. If they are not in the chats list, try search')
 
   except errors.TakeoutInitDelayError as e:
